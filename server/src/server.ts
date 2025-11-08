@@ -2,8 +2,9 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import { Server } from 'socket.io';
-import { getRoom, applyOp, upsertUser, removeUser, listUsers } from './rooms';
-import type { Op, User } from './types';
+import { getRoom, upsertUser, removeUser, listUsers } from './rooms';
+import { applyClientOp } from './drawing-state';
+import type { ClientOp, User } from './types';
 
 const app = express();
 app.use(cors());
@@ -16,10 +17,10 @@ io.on('connection', (socket) => {
   let roomId = 'default';
   let userId = socket.id;
 
-  function broadcastPresence(note?: string) {
+  const broadcastPresence = (note?: string) => {
     const room = getRoom(roomId);
     io.to(roomId).emit('presence', { users: listUsers(room), note });
-  }
+  };
 
   socket.on('join', (payload: { roomId?: string; user?: string; name?: string; color?: string }) => {
     roomId = payload?.roomId || 'default';
@@ -34,23 +35,18 @@ io.on('connection', (socket) => {
     };
     upsertUser(room, user);
 
-    // send initial ops to just-joined client
-    socket.emit('sync', room.ops);
-
-    // tell everyone the latest presence + a human note
+    socket.emit('sync', room.ops);          // initial state for the joiner
     broadcastPresence(`${user.name} joined`);
   });
 
-  socket.on('op', (op: Op) => {
+  socket.on('op', (clientOp: ClientOp) => {
     const room = getRoom(roomId);
-    const canon = applyOp(room, { ...op, user: userId });
+    const canon = applyClientOp(room, clientOp, userId);
 
     if (canon.kind === 'undo' || canon.kind === 'redo') {
-      // send full state so everyone re-renders accurately
-      io.to(roomId).emit('sync', room.ops);
+      io.to(roomId).emit('sync', room.ops); // full resync for correctness
     } else {
-      // normal strokes/erasers stream as incremental ops
-      io.to(roomId).emit('op', canon);
+      io.to(roomId).emit('op', canon);      // incremental broadcast
     }
   });
 
@@ -60,7 +56,8 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     const room = getRoom(roomId);
-    const user = room.users.get(userId);
+    // @ts-expect-error - see rooms.ts note
+    const user = room.users?.get?.(userId);
     removeUser(room, userId);
     broadcastPresence(user ? `${user.name} left` : `someone left`);
   });

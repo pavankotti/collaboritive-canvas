@@ -1,4 +1,4 @@
-import { Net } from './net';
+import { Net } from './websocket';
 import { setupCanvas, applyOp } from './canvas';
 import type { Op, Point } from './types';
 
