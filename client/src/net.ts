@@ -17,5 +17,5 @@ export class Net {
   sendOp(op: Op) { this.socket.emit('op', op); }
   onCursor(cb: (e: CursorEvent) => void) { this.socket.on('cursor', cb); }
   sendCursor(x:number, y:number, color:string) { this.socket.emit('cursor', { x, y, color }); }
-  onPresence(cb: (p: PresencePayload) => void) { this.socket.on('presence', cb); } // <—
+  onPresence(cb: (p: PresencePayload) => void) { this.socket.on('presence', cb); } 
 }

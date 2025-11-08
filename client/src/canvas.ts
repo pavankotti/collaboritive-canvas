@@ -1,4 +1,3 @@
-// client/src/canvas.ts
 import type { Point, Op } from './types';
 
 export function setupCanvas(c: HTMLCanvasElement) {
@@ -6,12 +5,10 @@ export function setupCanvas(c: HTMLCanvasElement) {
 
   const resize = () => {
     const rect = c.getBoundingClientRect();
-    // backstore in device pixels
     c.width  = Math.max(1, Math.floor(rect.width  * dpr));
     c.height = Math.max(1, Math.floor(rect.height * dpr));
 
     const ctx = c.getContext('2d')!;
-    // reset previous transform (CRITICAL) then apply DPR scale
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(dpr, dpr);
   };

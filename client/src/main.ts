@@ -20,7 +20,6 @@ const undoBtn = document.getElementById('undo') as HTMLButtonElement;
 const redoBtn = document.getElementById('redo') as HTMLButtonElement;
 
 const userId = crypto.randomUUID();
-// const userName = `guest-${userId.slice(0,4)}`;         // human-y, no ai fluff
 const userName = prompt('enter your name')?.trim() || `guest-${userId.slice(0,4)}`;
 const myColor = colorInput.value;
 
@@ -64,7 +63,7 @@ function toast(note?: string) {
 net.onPresence(({ users, note }) => {
   presenceUsers = users;
   refreshUserList();
-  if (note) toast(note);  // e.g., “pavan joined”
+  if (note) toast(note);
 });
 
 net.onSync((ops) => {

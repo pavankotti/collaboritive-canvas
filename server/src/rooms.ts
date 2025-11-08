@@ -5,7 +5,7 @@ type Room = {
   id: string;
   ops: Op[];
   undone: Op[];
-  users: Map<string, User>; // <— add
+  users: Map<string, User>;
 };
 
 const rooms = new Map<string, Room>();

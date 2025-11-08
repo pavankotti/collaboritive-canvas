@@ -10,13 +10,10 @@
       #users { font-size: 14px; color: #555 }
       #toolbar label { display: block; margin-bottom: 6px; }
 
-      /* make canvases fill, but do NOT set a background on all canvases */
       canvas { display: block; width: 100%; height: 100%; }
 
-      /* background only on the base (drawing) canvas */
       #base { background: #fff; }
 
-      /* overlay must be transparent so base drawings are visible */
       #wrap { position: relative; height: 100vh; }
       #overlay { position: absolute; inset: 0; pointer-events: none; background: transparent; }
 
