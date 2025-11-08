@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    // file layout
+    "rootDir": "src",
+    "outDir": "dist",
+
+    // environment
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "types": ["node"],
+
+    // outputs
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // strictness
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // compatibility / interop
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+
+    // important: allow esm syntax in cjs output
+    "verbatimModuleSyntax": false,
+
+    // optional: these can stay but aren't needed for server
+    // "isolatedModules": false,
+    // "noUncheckedSideEffectImports": false
+  }
+}
