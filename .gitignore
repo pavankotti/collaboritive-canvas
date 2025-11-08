@@ -1,0 +1,14 @@
+# deps
+node_modules/
+**/node_modules/
+
+# builds
+dist/
+**/dist/
+.out/
+.next/
+
+# env & logs
+.env
+**/.env
+*.log
