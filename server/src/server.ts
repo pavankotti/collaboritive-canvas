@@ -3,7 +3,7 @@ import http from 'http';
 import cors from 'cors';
 import { Server } from 'socket.io';
 import { getRoom, upsertUser, removeUser, listUsers } from './rooms';
-import { applyClientOp } from './drawing-state';
+import { applyClientOp, visibleOps } from './drawing-state';
 import type { ClientOp, User } from './types';
 
 const app = express();
@@ -35,7 +35,7 @@ io.on('connection', (socket) => {
     };
     upsertUser(room, user);
 
-    socket.emit('sync', room.ops);          // initial state for the joiner
+    socket.emit('sync', visibleOps(room));
     broadcastPresence(`${user.name} joined`);
   });
 
@@ -44,9 +44,9 @@ io.on('connection', (socket) => {
     const canon = applyClientOp(room, clientOp, userId);
 
     if (canon.kind === 'undo' || canon.kind === 'redo') {
-      io.to(roomId).emit('sync', room.ops); // full resync for correctness
+      io.to(roomId).emit('sync', visibleOps(room));
     } else {
-      io.to(roomId).emit('op', canon);      // incremental broadcast
+      io.to(roomId).emit('op', canon);
     }
   });
 

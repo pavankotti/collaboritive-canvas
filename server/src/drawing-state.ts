@@ -4,11 +4,16 @@ import type { ClientOp, Op } from './types';
 export type RoomState = {
   id: string;
   ops: Op[];
-  undone: Op[];   // stack used for redo
+  hidden: Set<string>;
+  undone: Map<string, string[]>;
 };
 
 export function createRoomState(id: string): RoomState {
-  return { id, ops: [], undone: [] };
+  return { id, ops: [], hidden: new Set(), undone: new Map() };
+}
+
+export function visibleOps(room: RoomState): Op[] {
+  return room.ops.filter(o => !room.hidden.has(o.id));
 }
 
 export function applyClientOp(room: RoomState, op: ClientOp, user: string): Op {
@@ -18,9 +23,11 @@ export function applyClientOp(room: RoomState, op: ClientOp, user: string): Op {
     for (let i = room.ops.length - 1; i >= 0; i--) {
       const candidate = room.ops[i];
       if (!candidate) continue;
-      if (candidate.kind === 'stroke' || candidate.kind === 'erase') {
-        const removed = room.ops.splice(i, 1)[0];
-        if (removed) room.undone.push(removed);
+      if ((candidate.kind === 'stroke' || candidate.kind === 'erase') && !room.hidden.has(candidate.id) && candidate.user === user) {
+        room.hidden.add(candidate.id);
+        const stack = room.undone.get(user) ?? [];
+        stack.push(candidate.id);
+        room.undone.set(user, stack);
         return { id: randomUUID(), user, t: now, kind: 'undo' };
       }
     }
@@ -28,12 +35,14 @@ export function applyClientOp(room: RoomState, op: ClientOp, user: string): Op {
   }
 
   if (op.kind === 'redo') {
-    const r = room.undone.pop();
-    if (r) room.ops.push(r);
+    const stack = room.undone.get(user) ?? [];
+    const target = stack.pop();
+    room.undone.set(user, stack);
+    if (target) room.hidden.delete(target);
     return { id: randomUUID(), user, t: now, kind: 'redo' };
   }
 
-  room.undone.length = 0;
+  room.undone.set(user, []);
   const canon: Op =
     op.kind === 'stroke'
       ? { id: randomUUID(), user, t: now, kind: 'stroke', color: op.color, width: op.width, points: op.points }
