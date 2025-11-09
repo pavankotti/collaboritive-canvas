@@ -141,3 +141,29 @@ base.addEventListener('pointerleave', () => { drawing = false; flushStroke(); cu
 
 undoBtn.onclick = () => net.sendOp({ kind: 'undo' });
 redoBtn.onclick = () => net.sendOp({ kind: 'redo' });
+
+
+// custom cursor setup
+const cursorCanvas = document.createElement('canvas');
+cursorCanvas.width = cursorCanvas.height = 32;
+const cursorCtx = cursorCanvas.getContext('2d')!;
+cursorCtx.imageSmoothingEnabled = true;
+
+function updateCursor() {
+  const size = Math.max(1, Number(widthInput.value));
+  const color = colorInput.value;
+
+  cursorCtx.clearRect(0, 0, 32, 32);
+  cursorCtx.beginPath();
+  cursorCtx.arc(16, 16, size / 2, 0, Math.PI * 2);
+  cursorCtx.strokeStyle = color;
+  cursorCtx.lineWidth = 1.5;
+  cursorCtx.stroke();
+
+  const url = cursorCanvas.toDataURL('image/png');
+  base.style.cursor = `url(${url}) 16 16, crosshair`;
+}
+
+widthInput.addEventListener('input', updateCursor);
+colorInput.addEventListener('input', updateCursor);
+updateCursor();

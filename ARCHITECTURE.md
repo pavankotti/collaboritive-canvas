@@ -22,14 +22,14 @@ server flow:
   │    └─ calls applyClientOp() in drawing-state.ts
   │
   ├─ drawing-state.ts:
-  │    ├─ manages room.ops[] (list of all applied operations)
-  │    ├─ manages room.undone[] (redo stack)
+  │    ├─ manages room.ops[] (all strokes and erases)
+  │    ├─ manages room.hidden (set of hidden operation ids)
+  │    ├─ manages room.undone (map of per-user redo stacks)
   │    ├─ handles:
-  │    │    • stroke / erase → append to ops[], clear undone[]
-  │    │    • undo → remove last op → push to undone[]
-  │    │    • redo → pop from undone[] → push back to ops[]
+  │    │    • stroke / erase → append to ops[], clear user’s undone stack
+  │    │    • undo → mark user’s latest op as hidden
+  │    │    • redo → unhide last op from user’s undone stack
   │    └─ returns canonical Op with id, user, timestamp
-  │
   ├─ rooms.ts:
   │    ├─ creates or fetches RoomState
   │    ├─ manages users (join, leave, list)
@@ -68,44 +68,43 @@ clients:
 **operation types**
 ```ts
 type Op =
-  | { kind: 'stroke'; color: string; width: number; points: [number, number][] }
-  | { kind: 'erase'; width: number; points: [number, number][] }
-  | { kind: 'undo' }
-  | { kind: 'redo' };
+  | { kind: 'stroke'; user: string; color: string; width: number; points: [number, number][] }
+  | { kind: 'erase';  user: string; width: number; points: [number, number][] }
+  | { kind: 'undo';   user: string }
+  | { kind: 'redo';   user: string };
   ```
 ---
 
 ## ↩️ Undo / Redo Strategy
 
-Undo and redo are **global** operations handled centrally by the **server** to ensure that all connected clients stay synchronized and consistent.
-
+Undo and redo are **per-user** operations handled by the **server** so each user can modify only their own strokes while all clients remain synchronized.
 ---
 
 ### 🧩 Undo Flow
 
-1. The server scans `room.ops[]` **backward** to find the most recent drawable operation (`stroke` or `erase`).
-2. It removes that operation from `room.ops[]` and pushes it into `room.undone[]`.
-3. The server emits a `sync(ops)` event containing the updated operation history.
-4. All connected clients receive the sync and **re-render** their canvases from scratch.
+1. The server scans `room.ops[]` backward to find the most recent operation owned by the user.
+2. It adds that operation’s id to `room.hidden` and stores it in the user’s `room.undone` stack.
+3. The server emits a `sync(visibleOps)` event containing only visible operations.
+4. All connected clients receive the sync and **re-render** their canvases accordingly.
+
 
 ---
 
 ### 🔁 Redo Flow
 
-1. The server pops the last operation from `room.undone[]`.
-2. It re-adds that operation to `room.ops[]`.
-3. The updated list of operations is broadcast via `sync(ops)` to every client.
-4. Each client clears its canvas and **replays** all operations sequentially.
-
+1. The server pops the last hidden operation id from the user’s `room.undone` stack.
+2. It removes that id from `room.hidden`.
+3. The updated visible operations are broadcast via `sync(visibleOps)` to every client.
+4. Each client clears its canvas and **replays** all visible operations sequentially.
 ---
 
 ### 🖥️ Client Reaction
 
 - On receiving `sync`, the client:
   - Clears the base canvas.
-  - Re-applies all operations (`stroke` and `erase`) in order.
-- This guarantees that every client’s view is **identical**, even after undo/redo actions or reconnections.
-
+  - Re-applies all visible operations (`stroke` and `erase`) in order.
+- Undo and redo affect only the initiating user’s actions; other users’ drawings remain untouched.
+- All clients stay fully synchronized.
 ## ⚙️ Performance Decisions
 
 | Optimization | Reason |
@@ -133,6 +132,6 @@ Undo and redo are **global** operations handled centrally by the **server** to e
 | **Multiple users drawing simultaneously** | The server queues operations (ops) in order of arrival; the canvas replays them sequentially for all users. |
 | **Overlapping strokes** | The most recent operation visually overrides previous ones — “last draw wins.” |
 | **Undo during drawing** | The server serializes the undo event before processing new strokes to maintain consistency. |
-| **Reconnect after lag** | Upon reconnection, the server sends a full `sync(ops)` event to rebuild a deterministic state on the client. |
+| ***Reconnect after lag** | Upon reconnection, the server sends a full `sync(visibleOps)` event to rebuild a deterministic state on the client. |
 | **Disconnect mid-stroke** | The portion of the stroke already sent remains on the canvas; unfinished parts are ignored. |
 | **Concurrent redo** | The server timestamps every operation (`t`) to preserve a single, globally ordered history. |

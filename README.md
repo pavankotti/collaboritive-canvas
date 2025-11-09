@@ -1,7 +1,7 @@
 # 🖌️ collaborative canvas
 
 a realtime collaborative drawing web app built using **vanilla typescript**, **html5 canvas**, and **socket.io**.  
-multiple users can draw together, see live cursors, and perform global undo/redo actions in sync.
+multiple users can draw together, see live cursors, and perform **per-user undo/redo** actions in sync.
 
 ---
 
@@ -30,9 +30,9 @@ npm start
 1. open the deployed app (or `http://localhost:5173`) in **two tabs** or different browsers.  
 2. draw in **tab a** — strokes instantly appear in **tab b**.  
 3. switch to **eraser mode** and erase a few lines — see them reflected across both tabs.  
-4. click **undo / redo** — both tabs update simultaneously since the server re-syncs the operation log.  
+4. click **undo / redo** — only your own strokes are affected, but both tabs update since the server re-syncs visible operations.  
 5. close one tab — the **users list** in the other automatically updates to show who left.  
-6. reopen the closed tab — it receives a complete **sync** of all previous drawing data.  
+6. reopen the closed tab — it receives a complete **sync** of all currently visible drawing data.
 
 ---
 
@@ -40,7 +40,6 @@ npm start
 
 | limitation | explanation |
 |-------------|-------------|
-| **undo/redo** | global — affects the most recent stroke by any user (not per-user) |
 | **persistence** | drawings are reset when the server restarts (no database) |
 | **authentication** | none — users are identified using a UUID |
 | **cold starts** | render’s free tier can delay websocket connections on first load |
