@@ -19,6 +19,13 @@ export function visibleOps(room: RoomState): Op[] {
 export function applyClientOp(room: RoomState, op: ClientOp, user: string): Op {
   const now = Date.now();
 
+  if (op.kind === 'clear') {
+    room.ops = [];
+    room.hidden.clear();
+    room.undone.clear();
+    return { id: randomUUID(), user, t: now, kind: 'clear' };
+  }
+
   if (op.kind === 'undo') {
     for (let i = room.ops.length - 1; i >= 0; i--) {
       const candidate = room.ops[i];

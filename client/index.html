@@ -3,51 +3,663 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>collab canvas</title>
+    <title>CollabCanvas – Draw Together</title>
     <style>
-      body { margin: 0; font-family: ui-sans-serif, system-ui; display: grid; grid-template-columns: 280px 1fr; height: 100vh; }
-      aside { padding: 12px; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
-      #users { font-size: 14px; color: #555 }
-      #toolbar label { display: block; margin-bottom: 6px; }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      canvas { display: block; width: 100%; height: 100%; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #f8fafc;
+        color: #1e293b;
+        height: 100vh;
+        overflow: hidden;
+      }
 
-      #base { background: #fff; }
+      /* ===== LANDING PAGE ===== */
+      #landing {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        gap: 28px;
+        background: linear-gradient(135deg, #eef2ff 0%, #faf5ff 100%);
+      }
 
-      #wrap { position: relative; height: 100vh; }
-      #overlay { position: absolute; inset: 0; pointer-events: none; background: transparent; }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 26px;
+        font-weight: 800;
+        color: #1e293b;
+      }
 
-      .cursor { position: absolute; transform: translate(-50%, -50%); font-size: 12px; background: #00000018; padding: 2px 6px; border-radius: 8px; }
-      .row { display: flex; align-items: center; gap: 8px; }
-      button { padding: 6px 10px; border-radius: 8px; border: 1px solid #e5e7eb; background: #f9fafb; cursor: pointer; }
-      button:active { transform: translateY(1px); }
+      .brand-icon {
+        width: 42px;
+        height: 42px;
+        background: #4f46e5;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 22px;
+      }
+
+      .tagline {
+        font-size: 14px;
+        color: #64748b;
+        text-align: center;
+      }
+
+      .landing-card {
+        background: white;
+        border-radius: 20px;
+        padding: 36px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 4px 32px rgba(79, 70, 229, 0.10);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .landing-card h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .form-field label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .form-field input {
+        padding: 10px 14px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 15px;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        color: #1e293b;
+        background: #f8fafc;
+      }
+
+      .form-field input:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        background: white;
+      }
+
+      .btn-primary {
+        padding: 12px 20px;
+        border-radius: 10px;
+        border: none;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s;
+        background: #4f46e5;
+        color: white;
+        width: 100%;
+      }
+
+      .btn-primary:hover { background: #4338ca; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,0.3); }
+      .btn-primary:active { transform: scale(0.98); box-shadow: none; }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #94a3b8;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+      }
+
+      .join-row {
+        display: flex;
+        gap: 8px;
+      }
+
+      .join-row input {
+        flex: 1;
+        padding: 10px 14px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 15px;
+        outline: none;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        font-weight: 700;
+        color: #1e293b;
+        background: #f8fafc;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+
+      .join-row input:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        background: white;
+      }
+
+      .btn-secondary {
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        background: white;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        color: #374151;
+        transition: all 0.15s;
+      }
+
+      .btn-secondary:hover { background: #f1f5f9; border-color: #4f46e5; color: #4f46e5; }
+
+      .field-error {
+        font-size: 12px;
+        color: #ef4444;
+        font-weight: 600;
+        display: none;
+      }
+
+      /* ===== CANVAS PAGE ===== */
+      #app {
+        display: none;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      .app-header {
+        height: 52px;
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        gap: 12px;
+        flex-shrink: 0;
+        z-index: 10;
+      }
+
+      .header-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 800;
+        color: #1e293b;
+        flex-shrink: 0;
+      }
+
+      .header-brand-dot {
+        width: 26px;
+        height: 26px;
+        background: #4f46e5;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+      }
+
+      .header-room {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+      }
+
+      .header-room strong {
+        color: #1e293b;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 2px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      #copy-room-btn {
+        background: none;
+        border: none;
+        color: #4f46e5;
+        font-size: 11px;
+        cursor: pointer;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      #copy-room-btn:hover { background: #ede9fe; }
+
+      .header-users {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: #15803d;
+        padding: 4px 10px;
+        background: #f0fdf4;
+        border-radius: 8px;
+        border: 1px solid #bbf7d0;
+        cursor: pointer;
+        font-weight: 600;
+        user-select: none;
+      }
+
+      .users-dot {
+        width: 7px;
+        height: 7px;
+        background: #22c55e;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .btn-leave {
+        background: #fef2f2;
+        color: #ef4444;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 5px 12px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+
+      .btn-leave:hover { background: #fee2e2; }
+
+      .workspace {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* Toolbar */
+      .toolbar {
+        width: 72px;
+        background: white;
+        border-right: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 12px 0;
+        gap: 6px;
+        flex-shrink: 0;
+        overflow-y: auto;
+      }
+
+      .tool-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        width: 100%;
+        padding: 0 10px;
+      }
+
+      .toolbar-label {
+        font-size: 9px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+      }
+
+      .toolbar-divider {
+        width: 44px;
+        height: 1px;
+        background: #e2e8f0;
+        margin: 4px 0;
+      }
+
+      .tool-btn {
+        width: 48px;
+        height: 44px;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #64748b;
+        transition: all 0.15s;
+      }
+
+      .tool-btn:hover { background: #f1f5f9; color: #1e293b; }
+      .tool-btn.active { background: #ede9fe; color: #4f46e5; box-shadow: inset 0 0 0 1.5px #c4b5fd; }
+
+      .color-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 24px);
+        gap: 5px;
+      }
+
+      .color-swatch {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2.5px solid transparent;
+        transition: transform 0.15s, border-color 0.15s;
+        outline: none;
+      }
+
+      .color-swatch:hover { transform: scale(1.18); }
+      .color-swatch.active { border-color: #4f46e5; transform: scale(1.1); box-shadow: 0 0 0 1px #e0e7ff; }
+
+      .color-picker-swatch {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2.5px solid #e2e8f0;
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+        background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+        transition: transform 0.15s;
+        flex-shrink: 0;
+      }
+
+      .color-picker-swatch:hover { transform: scale(1.18); }
+
+      #color {
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        cursor: pointer;
+        opacity: 0;
+        z-index: 1;
+      }
+
+      .width-slider-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        width: 100%;
+        padding: 0 10px;
+      }
+
+      #width {
+        width: 100%;
+        accent-color: #4f46e5;
+        cursor: pointer;
+      }
+
+      .width-val {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        background: #f1f5f9;
+        border-radius: 5px;
+        padding: 1px 6px;
+        min-width: 28px;
+        text-align: center;
+      }
+
+      .icon-btn {
+        width: 44px;
+        height: 40px;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #64748b;
+        transition: all 0.15s;
+      }
+
+      .icon-btn:hover { background: #f1f5f9; color: #1e293b; }
+      .icon-btn.danger { color: #ef4444; }
+      .icon-btn.danger:hover { background: #fef2f2; }
+
+      /* Canvas area */
+      #wrap {
+        position: relative;
+        flex: 1;
+        background: white;
+        background-image:
+          linear-gradient(rgba(148, 163, 184, 0.25) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(148, 163, 184, 0.25) 1px, transparent 1px);
+        background-size: 40px 40px;
+        overflow: hidden;
+      }
+
+      canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      #base { background: transparent; }
+      #overlay { pointer-events: none; background: transparent; }
+
+      /* Users floating panel */
+      #users-panel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px;
+        min-width: 180px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+        z-index: 30;
+        display: none;
+      }
+
+      #users-panel.open { display: block; }
+
+      #users-panel h4 {
+        font-size: 11px;
+        color: #94a3b8;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+      }
+
+      #users-list > div {
+        font-size: 13px;
+        padding: 4px 0;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .user-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #1e293b;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.20);
+        z-index: 999;
+        pointer-events: none;
+        animation: toastIn 0.2s ease;
+      }
+
+      @keyframes toastIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
     </style>
-
   </head>
   <body>
-    <aside>
-      <h3>tools</h3>
-      <div id="toolbar">
-        <div class="row">
-          <label><input type="radio" name="tool" value="brush" checked/> brush</label>
-          <label><input type="radio" name="tool" value="erase"/> eraser</label>
+
+    <!-- ===== LANDING PAGE ===== -->
+    <div id="landing">
+      <div class="brand">
+        <div class="brand-icon">&#9998;</div>
+        CollabCanvas
+      </div>
+      <p class="tagline">Real-time collaborative drawing &middot; No sign-up needed</p>
+
+      <div class="landing-card">
+        <h2>Start drawing together</h2>
+
+        <div class="form-field">
+          <label for="user-name">Your Name</label>
+          <input id="user-name" type="text" placeholder="e.g. Alex" maxlength="24" autocomplete="off" />
+          <span class="field-error" id="name-error">Please enter your name</span>
         </div>
-        <label>color <input id="color" type="color" value="#0ea5e9"/></label>
-        <label>width <input id="width" type="range" min="1" max="30" value="6"/></label>
-        <div class="row">
-          <button id="undo">undo</button>
-          <button id="redo">redo</button>
+
+        <button class="btn-primary" id="create-btn">&#10024; Create New Room</button>
+
+        <div class="divider">or join existing room</div>
+
+        <div class="form-field">
+          <label for="room-code-input">Room Code</label>
+          <div class="join-row">
+            <input id="room-code-input" type="text" placeholder="XXXXXX" maxlength="8" autocomplete="off" />
+            <button class="btn-secondary" id="join-btn">Join &rarr;</button>
+          </div>
+          <span class="field-error" id="code-error">Please enter a room code</span>
         </div>
       </div>
+    </div>
 
-      <h3>users</h3>
-      <div id="users"></div>
-      <small>open two tabs to test realtime.</small>
-    </aside>
+    <!-- ===== CANVAS PAGE ===== -->
+    <div id="app">
+      <header class="app-header">
+        <div class="header-brand">
+          <div class="header-brand-dot">&#9998;</div>
+          CollabCanvas
+        </div>
 
-    <div id="wrap">
-      <canvas id="base"></canvas>
-      <canvas id="overlay"></canvas>
+        <div class="header-room">
+          Room:&nbsp;<strong id="room-display">&mdash;</strong>
+          <button id="copy-room-btn" title="Copy room code">Copy</button>
+        </div>
+
+        <div class="header-users" id="users-toggle" title="Show online users">
+          <div class="users-dot"></div>
+          <span id="users-count">1 online</span>
+        </div>
+
+        <button class="btn-leave" id="leave-btn">Leave</button>
+      </header>
+
+      <div class="workspace">
+        <aside class="toolbar">
+
+          <div class="tool-section">
+            <span class="toolbar-label">Tools</span>
+            <button class="tool-btn active" data-tool="brush" title="Pencil">&#9998;</button>
+            <button class="tool-btn" data-tool="erase" title="Eraser">&#9723;</button>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <div class="tool-section">
+            <span class="toolbar-label">Color</span>
+            <div class="color-grid" id="color-palette">
+              <div class="color-swatch active" data-color="#000000" style="background:#000000;" title="Black"></div>
+              <div class="color-swatch" data-color="#ef4444" style="background:#ef4444;" title="Red"></div>
+              <div class="color-swatch" data-color="#3b82f6" style="background:#3b82f6;" title="Blue"></div>
+              <div class="color-swatch" data-color="#10b981" style="background:#10b981;" title="Green"></div>
+              <div class="color-swatch" data-color="#f59e0b" style="background:#f59e0b;" title="Yellow"></div>
+              <div class="color-swatch" data-color="#8b5cf6" style="background:#8b5cf6;" title="Purple"></div>
+              <div class="color-swatch" data-color="#ffffff" style="background:#ffffff; border-color:#e2e8f0;" title="White"></div>
+              <div class="color-picker-swatch" title="Custom color">
+                <input type="color" id="color" value="#000000" title="Pick custom color" />
+              </div>
+            </div>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <div class="width-slider-wrap">
+            <span class="toolbar-label">Size</span>
+            <input type="range" id="width" min="1" max="30" value="6" />
+            <span class="width-val" id="width-display">6</span>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <div class="tool-section">
+            <span class="toolbar-label">History</span>
+            <button class="icon-btn" id="undo" title="Undo (Ctrl+Z)">&#8617;</button>
+            <button class="icon-btn" id="redo" title="Redo (Ctrl+Y)">&#8618;</button>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <div class="tool-section">
+            <button class="icon-btn danger" id="clear-btn" title="Clear canvas for everyone">&#128465;</button>
+          </div>
+
+        </aside>
+
+        <div id="wrap">
+          <canvas id="base"></canvas>
+          <canvas id="overlay"></canvas>
+
+          <div id="users-panel">
+            <h4>Online Now</h4>
+            <div id="users-list"></div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

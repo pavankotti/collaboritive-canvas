@@ -19,4 +19,5 @@ export type Op =
       points: Point[];
     }
   | { id?: string; user?: string; t?: number; kind: 'undo' }
-  | { id?: string; user?: string; t?: number; kind: 'redo' };
+  | { id?: string; user?: string; t?: number; kind: 'redo' }
+  | { id?: string; user?: string; t?: number; kind: 'clear' };

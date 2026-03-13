@@ -9,6 +9,12 @@ import type { ClientOp, User } from './types';
 const app = express();
 app.use(cors());
 app.get('/', (_req, res) => res.send('collab-canvas server running'));
+app.get('/room/new', (_req, res) => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  res.json({ roomId: code });
+});
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
@@ -43,7 +49,7 @@ io.on('connection', (socket) => {
     const room = getRoom(roomId);
     const canon = applyClientOp(room, clientOp, userId);
 
-    if (canon.kind === 'undo' || canon.kind === 'redo') {
+    if (canon.kind === 'undo' || canon.kind === 'redo' || canon.kind === 'clear') {
       io.to(roomId).emit('sync', visibleOps(room));
     } else {
       io.to(roomId).emit('op', canon);
