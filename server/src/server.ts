@@ -17,13 +17,24 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+const ROOM_CODE_CHARS  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const ROOM_CODE_LEN    = 6;
+const ROOM_EXPIRY_MS   = 2 * 60 * 60 * 1000; // 2 hours
+
+function generateRoomCode(): string {
+  let code = '';
+  for (let i = 0; i < ROOM_CODE_LEN; i++) {
+    code += ROOM_CODE_CHARS[Math.floor(Math.random() * ROOM_CODE_CHARS.length)];
+  }
+  return code;
+}
+
 app.get('/', (_req, res) => res.send('SkribblCanvas server running'));
 
 /** Generate a short room code and optionally persist to DB */
 app.get('/room/new', async (_req, res) => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  const code = generateRoomCode();
 
   if (globalThis.__prisma) {
     try {
@@ -32,7 +43,7 @@ app.get('/room/new', async (_req, res) => {
           code,
           hostId: 'pending',
           totalRounds: 3,
-          expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+          expiresAt: new Date(Date.now() + ROOM_EXPIRY_MS),
         },
       });
     } catch { /* best-effort */ }

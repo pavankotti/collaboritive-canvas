@@ -124,7 +124,7 @@ export default function Toolbar({
   ];
 
   return (
-    <div className="fixed left-4 top-1/2 -translate-y-1/2 z-40 bg-white rounded-2xl shadow-xl p-3 flex flex-col items-center gap-2 select-none">
+    <div className="bg-white rounded-2xl shadow-lg p-3 flex flex-col items-center gap-2 select-none self-start">
       {/* Tool buttons */}
       {tools.map(({ id, Icon, label }) => (
         <button

@@ -21,6 +21,9 @@ type TimerHandle = ReturnType<typeof setInterval>;
 const DRAWING_SECONDS   = 60;
 const WORD_SELECT_SECS  = 15;
 const ROUND_END_SECS    = 5;
+const SCORE_MAX_PTS     = 100;
+const SCORE_MIN_PTS     = 10;
+const DRAWER_SCORE_MULT = 100;
 
 export class RoomManager {
   private io: Server;
@@ -206,7 +209,7 @@ export class RoomManager {
     // Drawer earns points proportional to how many guessed
     const totalGuessers = guesserCount(room.game);
     if (totalGuessers > 0) {
-      const drawerPts = Math.round((correctCount(room.game) / totalGuessers) * 100);
+      const drawerPts = Math.round((correctCount(room.game) / totalGuessers) * DRAWER_SCORE_MULT);
       const drawer = room.game.players.find(p => p.id === room.game!.drawerId);
       if (drawer) drawer.score += drawerPts;
     }
@@ -316,7 +319,7 @@ export class RoomManager {
     const isCorrect = text.trim().toLowerCase() === (room.currentWord ?? '').toLowerCase();
 
     if (isCorrect) {
-      const pts = Math.max(10, Math.round((room.game.timeLeft / DRAWING_SECONDS) * 100));
+      const pts = Math.max(SCORE_MIN_PTS, Math.round((room.game.timeLeft / DRAWING_SECONDS) * SCORE_MAX_PTS));
       player.score += pts;
       player.status = 'guessed';
       onChat({ userId: senderId, name, color, text: `🎉 ${name} guessed the word!`, isCorrect: true });

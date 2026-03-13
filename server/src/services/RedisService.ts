@@ -36,8 +36,8 @@ class RedisService {
   async connect() {
     if (!this.available) return;
     await Promise.all([
-      this.client!.connect().catch(() => {}),
-      this.subscriber!.connect().catch(() => {}),
+      this.client!.connect().catch((err) => console.warn('[Redis] pub connect failed:', err)),
+      this.subscriber!.connect().catch((err) => console.warn('[Redis] sub connect failed:', err)),
     ]);
   }
 }

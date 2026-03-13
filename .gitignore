@@ -12,3 +12,5 @@ dist/
 .env
 **/.env
 *.log
+nextjs-client/.next/
+nextjs-client/node_modules/

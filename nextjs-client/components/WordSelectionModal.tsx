@@ -34,13 +34,7 @@ function ModalContent({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return t - 1;
-      });
+      setTimeLeft((t) => Math.max(0, t - 1));
     }, 1000);
     return () => clearInterval(interval);
   }, []); // runs once on mount
