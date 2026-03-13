@@ -99,12 +99,28 @@ function enterSession(roomCode: string, userName: string) {
   requestAnimationFrame(renderCursors);
 }
 
-// Create room
-createBtn.addEventListener('click', () => {
+// Create room — request a code from the server, fall back to local generation
+createBtn.addEventListener('click', async () => {
   const name = getName();
   showError(nameError, !name);
   if (!name) return;
-  enterSession(generateCode(), name);
+
+  createBtn.disabled = true;
+  let code: string;
+  try {
+    const res = await fetch(`${serverUrl}/room/new`);
+    if (res.ok) {
+      const data = await res.json() as { roomId: string };
+      code = data.roomId;
+    } else {
+      code = generateCode();
+    }
+  } catch {
+    code = generateCode();
+  } finally {
+    createBtn.disabled = false;
+  }
+  enterSession(code, name);
 });
 
 // Join room
