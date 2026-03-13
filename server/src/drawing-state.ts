@@ -9,6 +9,9 @@ export type RoomState = {
   /** Per-user undo stacks: userId → [opId, ...] (top = last element) */
   undone: Map<string, string[]>;
 
+  // ── User registry (augmented at runtime by RoomManager) ──────────────────
+  _users?: Map<string, import('./types').User>;
+
   // ── Game fields (populated once game:start is received) ──────────────────
   hostId?: string | undefined;
   game?: GameState | undefined;

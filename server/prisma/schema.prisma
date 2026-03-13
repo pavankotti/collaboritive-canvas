@@ -1,0 +1,98 @@
+// Prisma schema for SkribblCanvas
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ─────────────────────────────────────────────────────────────────
+
+enum GamePhase {
+  LOBBY
+  WORD_SELECTION
+  DRAWING
+  ROUND_END
+  GAME_OVER
+}
+
+enum WordDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+// ─── Models ────────────────────────────────────────────────────────────────
+
+/// A player identity (ephemeral — no password, identified by JWT).
+model User {
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(32)
+  color     String   @default("#0ea5e9") @db.VarChar(9)
+  /// Opaque token stored client-side; used to re-identify on reconnect.
+  token     String   @unique @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  matchHistories MatchHistory[]
+
+  @@map("users")
+}
+
+/// A game room identified by a short human-readable code.
+model Room {
+  id           String    @id @default(cuid())
+  /// 6-character uppercase code shown to players (e.g. "AB3K7Z")
+  code         String    @unique @db.VarChar(8)
+  hostId       String
+  totalRounds  Int       @default(3)
+  currentRound Int       @default(0)
+  phase        GamePhase @default(LOBBY)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  /// Room is automatically archived after this time.
+  expiresAt    DateTime
+
+  matchHistories MatchHistory[]
+
+  @@index([code])
+  @@index([expiresAt])
+  @@map("rooms")
+}
+
+/// Per-player statistics for one completed match.
+model MatchHistory {
+  id         String   @id @default(cuid())
+  roomId     String
+  userId     String
+  score      Int      @default(0)
+  rank       Int?
+  wordsDrawn Int      @default(0)
+  correctGuesses Int  @default(0)
+  createdAt  DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([userId])
+  @@map("match_histories")
+}
+
+/// A single drawable word with difficulty metadata.
+model Word {
+  id         String         @id @default(cuid())
+  word       String         @unique @db.VarChar(64)
+  difficulty WordDifficulty @default(MEDIUM)
+  category   String?        @db.VarChar(32)
+  timesUsed  Int            @default(0)
+  createdAt  DateTime       @default(now())
+
+  @@index([difficulty])
+  @@index([category])
+  @@map("words")
+}
