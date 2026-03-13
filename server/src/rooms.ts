@@ -14,11 +14,20 @@ export function upsertUser(room: RoomState, user: User) {
   if (!room.users) room.users = new Map<string, User>();
   // @ts-expect-error - see above
   room.users.set(user.id, user);
+
+  // First user to join becomes the host
+  if (!room.hostId) room.hostId = user.id;
 }
 
 export function removeUser(room: RoomState, userId: string) {
   // @ts-expect-error - see above
   room.users?.delete(userId);
+  // If host leaves, reassign to next available user
+  if (room.hostId === userId) {
+    // @ts-expect-error - see above
+    const remaining = Array.from(room.users?.values?.() ?? []) as User[];
+    room.hostId = remaining[0]?.id;
+  }
 }
 
 export function listUsers(room: RoomState): User[] {

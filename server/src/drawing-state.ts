@@ -1,11 +1,21 @@
 import { randomUUID } from 'crypto';
-import type { ClientOp, Op } from './types';
+import type { ClientOp, GameState, Op } from './types';
 
 export type RoomState = {
   id: string;
   ops: Op[];
+  /** Per-user set of op-ids that are currently "hidden" (undone) */
   hidden: Set<string>;
+  /** Per-user undo stacks: userId → [opId, ...] (top = last element) */
   undone: Map<string, string[]>;
+
+  // ── Game fields (populated once game:start is received) ──────────────────
+  hostId?: string | undefined;
+  game?: GameState | undefined;
+  /** The actual un-masked word for the current turn (server-only) */
+  currentWord?: string | undefined;
+  /** Server-side interval handle for the turn timer */
+  timer?: ReturnType<typeof setInterval> | undefined;
 };
 
 export function createRoomState(id: string): RoomState {
