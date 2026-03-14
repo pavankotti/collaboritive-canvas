@@ -74,7 +74,9 @@ export class Net {
   }
 
   // ── drawing ───────────────────────────────────────────────────────────────
-  sendOp(op: Op) { this.socket.emit('op', op); }
+  sendOp(op: Op) {
+    this.socket.emit('op', op);
+  }
   sendCursor(x: number, y: number, color: string) {
     this.socket.emit('cursor', { x, y, color });
   }

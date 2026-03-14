@@ -323,7 +323,7 @@ function flushStroke() {
 }
 
 base.addEventListener('pointerup', (e) => {
-  try { base.releasePointerCapture(e.pointerId); } catch { /* noop */ }
+  try { base.releasePointerCapture(e.pointerId); } catch (err) { /* pointer capture release may fail if already released */ void err; }
   drawing = false; flushStroke(); currentPoints = [];
 });
 base.addEventListener('pointerleave', () => { drawing = false; flushStroke(); currentPoints = []; });

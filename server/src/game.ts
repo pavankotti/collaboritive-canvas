@@ -161,7 +161,7 @@ export function revealOneLetter(room: GameRoom): string {
     return acc;
   }, []);
   if (!candidates.length) return room.currentHint;
-  const pick = candidates[Math.floor(Math.random() * candidates.length)] as number;
+  const pick = candidates[Math.floor(Math.random() * candidates.length)]!;
   room.revealedIndices.add(pick);
   room.currentHint = buildHint(room.currentWord, room.revealedIndices);
   return room.currentHint;
@@ -183,7 +183,7 @@ export function pickWordChoices(room: GameRoom): string[] {
 export function advanceDrawer(room: GameRoom): GamePlayer | null {
   // If the current rotation's queue still has players, use them first
   while (room.drawerQueue.length > 0) {
-    const id = room.drawerQueue.shift() as string;
+    const id = room.drawerQueue.shift()!;
     if (room.players.has(id)) {
       room.drawerSocketId = id;
       return room.players.get(id) as GamePlayer;
@@ -197,7 +197,7 @@ export function advanceDrawer(room: GameRoom): GamePlayer | null {
   room.drawerQueue = Array.from(room.players.keys()).sort(() => Math.random() - 0.5);
 
   while (room.drawerQueue.length > 0) {
-    const id = room.drawerQueue.shift() as string;
+    const id = room.drawerQueue.shift()!;
     if (room.players.has(id)) {
       room.drawerSocketId = id;
       return room.players.get(id) as GamePlayer;
