@@ -3,51 +3,170 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>collab canvas</title>
-    <style>
-      body { margin: 0; font-family: ui-sans-serif, system-ui; display: grid; grid-template-columns: 280px 1fr; height: 100vh; }
-      aside { padding: 12px; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
-      #users { font-size: 14px; color: #555 }
-      #toolbar label { display: block; margin-bottom: 6px; }
-
-      canvas { display: block; width: 100%; height: 100%; }
-
-      #base { background: #fff; }
-
-      #wrap { position: relative; height: 100vh; }
-      #overlay { position: absolute; inset: 0; pointer-events: none; background: transparent; }
-
-      .cursor { position: absolute; transform: translate(-50%, -50%); font-size: 12px; background: #00000018; padding: 2px 6px; border-radius: 8px; }
-      .row { display: flex; align-items: center; gap: 8px; }
-      button { padding: 6px 10px; border-radius: 8px; border: 1px solid #e5e7eb; background: #f9fafb; cursor: pointer; }
-      button:active { transform: translateY(1px); }
-    </style>
-
+    <title>Scribble!</title>
+    <link rel="stylesheet" href="/src/style.css"/>
   </head>
   <body>
-    <aside>
-      <h3>tools</h3>
-      <div id="toolbar">
-        <div class="row">
-          <label><input type="radio" name="tool" value="brush" checked/> brush</label>
-          <label><input type="radio" name="tool" value="erase"/> eraser</label>
+
+    <!-- ═══════════════════════════ SCREEN: HOME ═══════════════════════════ -->
+    <div id="screen-home" class="screen active">
+      <div class="home-card">
+        <div class="home-logo">🎨</div>
+        <h1>Scribble!</h1>
+        <p class="subtitle">Draw, guess, and laugh with friends!</p>
+
+        <input id="inp-name" type="text" placeholder="Your name (optional)" maxlength="20" autocomplete="off"/>
+
+        <div class="home-divider"><span>— Join or create a room —</span></div>
+
+        <input id="inp-room" type="text" placeholder="Room code (leave blank to create)"
+               maxlength="4" autocomplete="off" style="text-transform:uppercase"/>
+
+        <div class="btn-row">
+          <button id="btn-create" class="btn btn-primary">✨ Create Room</button>
+          <button id="btn-join"   class="btn btn-secondary">🚪 Join Room</button>
         </div>
-        <label>color <input id="color" type="color" value="#0ea5e9"/></label>
-        <label>width <input id="width" type="range" min="1" max="30" value="6"/></label>
-        <div class="row">
-          <button id="undo">undo</button>
-          <button id="redo">redo</button>
+        <p id="home-error" class="error-msg"></p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════ SCREEN: LOBBY ══════════════════════════ -->
+    <div id="screen-lobby" class="screen">
+      <div class="lobby-wrap">
+        <div class="lobby-header">
+          <span class="logo-sm">🎨 Scribble!</span>
+          <div class="room-badge">
+            Room: <strong id="lbl-room-code">----</strong>
+            <button id="btn-copy" class="btn-icon" title="Copy code">📋</button>
+          </div>
+        </div>
+
+        <div class="lobby-body">
+          <div class="lobby-players-panel">
+            <h3>Players (<span id="lbl-player-count">0</span>)</h3>
+            <div id="lobby-player-list"></div>
+          </div>
+
+          <div class="lobby-settings-panel">
+            <h3>Game Settings</h3>
+            <label class="setting-row">
+              <span>Rounds</span>
+              <input id="inp-rounds" type="number" min="1" max="10" value="3"/>
+            </label>
+            <div id="host-controls">
+              <button id="btn-start" class="btn btn-primary btn-lg" disabled>▶ Start Game</button>
+              <p id="lbl-need-players" class="hint-text">Need at least 2 players</p>
+            </div>
+            <p id="lbl-wait-host" class="hint-text hidden">Waiting for host to start…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════ SCREEN: GAME ══════════════════════════ -->
+    <div id="screen-game" class="screen">
+      <!-- Top bar -->
+      <div id="game-topbar">
+        <div id="topbar-left">
+          <span id="lbl-round-info">Round 1/3</span>
+        </div>
+        <div id="topbar-center">
+          <div id="word-hint-area"></div>
+          <div id="game-status-msg"></div>
+        </div>
+        <div id="topbar-right">
+          <div id="timer-box">
+            <div id="timer-num">80</div>
+            <div id="timer-track"><div id="timer-fill"></div></div>
+          </div>
         </div>
       </div>
 
-      <h3>users</h3>
-      <div id="users"></div>
-      <small>open two tabs to test realtime.</small>
-    </aside>
+      <!-- Main 3-column layout -->
+      <div id="game-main">
 
-    <div id="wrap">
-      <canvas id="base"></canvas>
-      <canvas id="overlay"></canvas>
+        <!-- Left: Leaderboard -->
+        <aside id="leaderboard">
+          <h3>🏆 Scores</h3>
+          <div id="score-list"></div>
+        </aside>
+
+        <!-- Center: Canvas + overlays -->
+        <div id="canvas-area">
+
+          <!-- Drawer's toolbar (visible to drawer only) -->
+          <div id="drawing-tools" class="hidden">
+            <label class="tool-opt"><input type="radio" name="tool" value="brush" checked/> 🖌 Brush</label>
+            <label class="tool-opt"><input type="radio" name="tool" value="erase"/> ⬜ Eraser</label>
+            <label class="tool-opt">🎨 <input id="color" type="color" value="#111111"/></label>
+            <label class="tool-opt">Size <input id="width" type="range" min="1" max="30" value="6"/></label>
+            <div class="tool-btns">
+              <button id="undo">↩ Undo</button>
+              <button id="redo">↪ Redo</button>
+              <button id="btn-clear-canvas">🗑 Clear</button>
+            </div>
+          </div>
+
+          <!-- Overlays (stacked above canvas) -->
+          <div id="canvas-overlays">
+
+            <!-- Word choice (drawer only, choosing phase) -->
+            <div id="overlay-word-choice" class="canvas-overlay hidden">
+              <div class="overlay-card">
+                <h3>Pick a word to draw!</h3>
+                <div id="word-choice-list"></div>
+              </div>
+            </div>
+
+            <!-- Waiting for drawer (non-drawer, choosing phase) -->
+            <div id="overlay-waiting" class="canvas-overlay hidden">
+              <div class="overlay-card">
+                <p id="waiting-msg">Waiting for drawer to pick a word…</p>
+              </div>
+            </div>
+
+            <!-- Round end summary -->
+            <div id="overlay-round-end" class="canvas-overlay hidden">
+              <div class="overlay-card">
+                <h3>Round Over!</h3>
+                <p id="round-end-word"></p>
+                <div id="round-end-scores"></div>
+              </div>
+            </div>
+
+          </div><!-- /canvas-overlays -->
+
+          <div id="canvas-wrap">
+            <canvas id="base"></canvas>
+            <canvas id="overlay-canvas"></canvas>
+          </div>
+        </div><!-- /canvas-area -->
+
+        <!-- Right: Chat -->
+        <aside id="chat-panel">
+          <h3>💬 Chat</h3>
+          <div id="chat-messages"></div>
+          <div id="chat-input-row">
+            <input id="chat-input" type="text" placeholder="Type to guess / chat…" maxlength="100" autocomplete="off"/>
+            <button id="btn-send-chat" class="btn btn-primary">➤</button>
+          </div>
+        </aside>
+
+      </div><!-- /game-main -->
+    </div><!-- /screen-game -->
+
+    <!-- ════════════════════════════ SCREEN: END ═══════════════════════════ -->
+    <div id="screen-end" class="screen">
+      <div class="end-wrap">
+        <h2 id="end-title">🎉 Game Over!</h2>
+        <div id="winner-msg"></div>
+        <div id="podium"></div>
+        <div id="final-list"></div>
+        <div class="end-btns">
+          <button id="btn-play-again" class="btn btn-primary hidden">🔄 Play Again</button>
+          <button id="btn-home" class="btn btn-secondary">🏠 Home</button>
+        </div>
+      </div>
     </div>
 
     <script type="module" src="/src/main.ts"></script>
