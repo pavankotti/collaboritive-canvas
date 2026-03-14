@@ -1,6 +1,12 @@
 import { randomUUID } from 'crypto';
 import type { ClientOp, Op } from './types';
 
+export function clearRoomOps(room: RoomState): void {
+  room.ops = [];
+  room.hidden.clear();
+  room.undone.clear();
+}
+
 export type RoomState = {
   id: string;
   ops: Op[];
